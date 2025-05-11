@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diagram Text Editor</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+</head>
+<body>
+  <h1>Diagram Text Editor</h1>
+  <input type="file" id="imageUpload" accept="image/*" />
+  <button onclick="runOCR()">Extract Text</button>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script src="script.js"></script>
+</body>
+</html>
