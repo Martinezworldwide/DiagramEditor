@@ -21,20 +21,23 @@ function runOCR() {
     return;
   }
 
-  Tesseract.recognize(uploadedImg.getSrc(), 'eng').then(({ data: { text } }) => {
-    const lines = text.split('\n');
-    lines.forEach((line, i) => {
-      if (line.trim() !== '') {
-        const textbox = new fabric.Textbox(line.trim(), {
-          left: 50,
-          top: 30 + i * 30,
-          fontSize: 16,
-          fill: '#000',
-          backgroundColor: '#fff',
-          editable: true
-        });
-        canvas.add(textbox);
-      }
+  Tesseract.recognize(uploadedImg.getSrc(), 'eng', {
+    logger: m => console.log(m)
+  }).then(({ data }) => {
+    data.words.forEach(word => {
+      const { text, bbox } = word;
+      const textbox = new fabric.Textbox(text, {
+        left: bbox.x0,
+        top: bbox.y0,
+        width: bbox.x1 - bbox.x0,
+        fontSize: 14,
+        fill: '#000',
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        editable: true
+      });
+      canvas.add(textbox);
     });
+    canvas.renderAll();
   });
 }
+
