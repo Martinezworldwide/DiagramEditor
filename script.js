@@ -28,14 +28,101 @@ const tools = {
     upload: document.getElementById('uploadBtn')
 };
 
+// Function to create editable text from image
+async function createEditableTextFromImage(imageData) {
+    try {
+        // Create a temporary canvas to process the image
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = imageData.width;
+        tempCanvas.height = imageData.height;
+        tempCtx.drawImage(imageData, 0, 0);
+
+        // Use Tesseract.js for OCR
+        const result = await Tesseract.recognize(
+            tempCanvas.toDataURL(),
+            'eng',
+            {
+                logger: m => console.log(m)
+            }
+        );
+
+        // Create editable text objects for each detected word
+        result.data.words.forEach(word => {
+            const text = new fabric.IText(word.text, {
+                left: word.bbox.x0,
+                top: word.bbox.y0,
+                fontSize: Math.abs(word.bbox.y1 - word.bbox.y0),
+                fill: '#000',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true,
+                cornerColor: '#0d6efd',
+                cornerSize: 10,
+                transparentCorners: false,
+                padding: 5,
+                backgroundColor: 'rgba(255,255,255,0.8)'
+            });
+            canvas.add(text);
+        });
+    } catch (error) {
+        console.error('Error processing text:', error);
+    }
+}
+
+// Function to detect and create editable shapes
+function detectAndCreateShapes(imageData) {
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = imageData.width;
+    tempCanvas.height = imageData.height;
+    tempCtx.drawImage(imageData, 0, 0);
+
+    // Get image data for processing
+    const imageDataObj = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    const data = imageDataObj.data;
+
+    // Simple edge detection
+    for (let y = 0; y < tempCanvas.height; y++) {
+        for (let x = 0; x < tempCanvas.width; x++) {
+            const idx = (y * tempCanvas.width + x) * 4;
+            
+            // Check for significant color changes (edges)
+            if (x > 0 && y > 0) {
+                const prevIdx = (y * tempCanvas.width + (x - 1)) * 4;
+                const aboveIdx = ((y - 1) * tempCanvas.width + x) * 4;
+                
+                if (Math.abs(data[idx] - data[prevIdx]) > 30 ||
+                    Math.abs(data[idx] - data[aboveIdx]) > 30) {
+                    // Create a small rectangle at edge points
+                    const rect = new fabric.Rect({
+                        left: x,
+                        top: y,
+                        width: 2,
+                        height: 2,
+                        fill: '#000',
+                        selectable: true,
+                        hasControls: true,
+                        hasBorders: true,
+                        cornerColor: '#0d6efd',
+                        cornerSize: 10,
+                        transparentCorners: false
+                    });
+                    canvas.add(rect);
+                }
+            }
+        }
+    }
+}
+
 // Enhanced image upload handling
-document.getElementById('imageUpload').addEventListener('change', function(e) {
+document.getElementById('imageUpload').addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = async function(event) {
             const img = new Image();
-            img.onload = function() {
+            img.onload = async function() {
                 // Clear existing content
                 canvas.clear();
                 
@@ -53,7 +140,8 @@ document.getElementById('imageUpload').addEventListener('change', function(e) {
                     lockScalingY: false,
                     cornerColor: '#0d6efd',
                     cornerSize: 10,
-                    transparentCorners: false
+                    transparentCorners: false,
+                    opacity: 0.5 // Make the background image semi-transparent
                 });
                 
                 // Scale image to fit canvas while maintaining aspect ratio
@@ -73,6 +161,11 @@ document.getElementById('imageUpload').addEventListener('change', function(e) {
                 canvas.add(fabricImage);
                 canvas.setActiveObject(fabricImage);
                 uploadedImage = fabricImage;
+                
+                // Process the image to create editable assets
+                await createEditableTextFromImage(img);
+                detectAndCreateShapes(img);
+                
                 canvas.renderAll();
             };
             img.src = event.target.result;

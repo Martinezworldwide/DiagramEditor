@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -20,6 +21,12 @@
                     <h5>Upload Diagram</h5>
                     <input type="file" id="imageUpload" accept="image/*" class="form-control mb-2" />
                     <button class="btn btn-primary w-100" id="uploadBtn">Upload</button>
+                    <div id="processingStatus" class="mt-2 text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-1">Processing diagram...</p>
+                    </div>
                 </div>
                 <div class="tool-group">
                     <button class="btn btn-tool" id="selectTool" title="Select">
