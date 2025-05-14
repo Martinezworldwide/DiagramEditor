@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -15,40 +16,42 @@
             <!-- Toolbar -->
             <div class="col-md-2 toolbar">
                 <h3>Tools</h3>
-                <!-- Image Upload Section -->
                 <div class="tool-group">
-                    <h5>Upload Diagram</h5>
-                    <input type="file" id="imageUpload" accept="image/*" class="form-control mb-2" />
-                    <button class="btn btn-primary w-100" id="uploadBtn">Upload</button>
-                </div>
-                <div class="tool-group">
-                    <button class="btn btn-tool" id="selectTool" title="Select">
+                    <button id="selectTool" class="tool-btn" title="Select">
                         <i class="fas fa-mouse-pointer"></i>
                     </button>
-                    <button class="btn btn-tool" id="rectangleTool" title="Rectangle">
+                    <button id="rectangleTool" class="tool-btn" title="Rectangle">
                         <i class="fas fa-square"></i>
                     </button>
-                    <button class="btn btn-tool" id="arrowTool" title="Arrow">
+                    <button id="arrowTool" class="tool-btn" title="Arrow">
                         <i class="fas fa-arrow-right"></i>
                     </button>
-                    <button class="btn btn-tool" id="textTool" title="Text">
+                    <button id="textTool" class="tool-btn" title="Text">
                         <i class="fas fa-font"></i>
+                    </button>
+                    <button id="deleteTool" class="tool-btn" title="Delete">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <div class="tool-group">
-                    <button class="btn btn-tool" id="deleteTool" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="btn btn-tool" id="bringForward" title="Bring Forward">
+                    <button id="bringForward" class="tool-btn" title="Bring Forward">
                         <i class="fas fa-arrow-up"></i>
                     </button>
-                    <button class="btn btn-tool" id="sendBackward" title="Send Backward">
+                    <button id="sendBackward" class="tool-btn" title="Send Backward">
                         <i class="fas fa-arrow-down"></i>
                     </button>
                 </div>
                 <div class="tool-group">
-                    <button class="btn btn-primary" id="exportBtn">Export</button>
-                    <button class="btn btn-secondary" id="importBtn">Import</button>
+                    <button id="exportBtn" class="tool-btn" title="Export">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button id="importBtn" class="tool-btn" title="Import">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                    <label for="imageUpload" class="tool-btn" title="Upload Diagram">
+                        <i class="fas fa-file-image"></i>
+                    </label>
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
                 </div>
             </div>
             
@@ -57,6 +60,9 @@
                 <canvas id="canvas"></canvas>
             </div>
         </div>
+    </div>
+    <div id="processingStatus" class="processing-status" style="display: none;">
+        Processing image... Please wait.
     </div>
     <script src="script.js"></script>
 </body>
