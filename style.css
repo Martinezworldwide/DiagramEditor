@@ -1,11 +1,81 @@
-
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background-color: #f8f9fa;
 }
 
-canvas {
-  border: 1px solid #ccc;
-  margin-top: 10px;
+.container-fluid {
+  height: 100vh;
+  padding: 0;
+}
+
+.row {
+  height: 100%;
+  margin: 0;
+}
+
+.toolbar {
+  background-color: #ffffff;
+  padding: 20px;
+  border-right: 1px solid #dee2e6;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.tool-group {
+  margin-bottom: 20px;
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.btn-tool {
+  width: 40px;
+  height: 40px;
+  margin: 5px;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.btn-tool:hover {
+  background-color: #e9ecef;
+}
+
+.btn-tool.active {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.canvas-container {
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f9fa;
+}
+
+#canvas {
+  border: 1px solid #dee2e6;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Custom styles for Fabric.js objects */
+.canvas-container .upper-canvas {
+  border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .toolbar {
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .canvas-container {
+    height: calc(100vh - 200px);
+  }
 }

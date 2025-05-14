@@ -1,43 +1,246 @@
-const canvas = new fabric.Canvas('canvas');
-let uploadedImg;
-
-document.getElementById('imageUpload').addEventListener('change', function (e) {
-  const reader = new FileReader();
-  reader.onload = function (event) {
-    fabric.Image.fromURL(event.target.result, function (img) {
-      uploadedImg = img;
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-        scaleX: canvas.width / img.width,
-        scaleY: canvas.height / img.height,
-      });
-    });
-  };
-  reader.readAsDataURL(e.target.files[0]);
+// Initialize canvas
+const canvas = new fabric.Canvas('canvas', {
+    width: 800,
+    height: 600,
+    selection: true,
+    preserveObjectStacking: true
 });
 
-function runOCR() {
-  if (!uploadedImg) {
-    alert("Upload an image first.");
-    return;
-  }
+// Tool states
+let currentTool = 'select';
+let isDrawing = false;
+let startPoint = null;
 
-  Tesseract.recognize(uploadedImg.getSrc(), 'eng', {
-    logger: m => console.log(m)
-  }).then(({ data }) => {
-    data.words.forEach(word => {
-      const { text, bbox } = word;
-      const textbox = new fabric.Textbox(text, {
-        left: bbox.x0,
-        top: bbox.y0,
-        width: bbox.x1 - bbox.x0,
-        fontSize: 14,
-        fill: '#000',
-        backgroundColor: 'rgba(255,255,255,0.8)',
-        editable: true
-      });
-      canvas.add(textbox);
+// Initialize tools
+const tools = {
+    select: document.getElementById('selectTool'),
+    rectangle: document.getElementById('rectangleTool'),
+    arrow: document.getElementById('arrowTool'),
+    text: document.getElementById('textTool'),
+    delete: document.getElementById('deleteTool'),
+    bringForward: document.getElementById('bringForward'),
+    sendBackward: document.getElementById('sendBackward'),
+    export: document.getElementById('exportBtn'),
+    import: document.getElementById('importBtn')
+};
+
+// Set up tool buttons
+Object.keys(tools).forEach(tool => {
+    if (tools[tool]) {
+        tools[tool].addEventListener('click', () => {
+            if (tool !== 'delete' && tool !== 'bringForward' && tool !== 'sendBackward' && tool !== 'export' && tool !== 'import') {
+                setActiveTool(tool);
+            }
+        });
+    }
+});
+
+// Tool activation
+function setActiveTool(tool) {
+    currentTool = tool;
+    Object.keys(tools).forEach(t => {
+        if (tools[t]) {
+            tools[t].classList.remove('active');
+        }
     });
-    canvas.renderAll();
-  });
+    tools[tool].classList.add('active');
+    
+    // Update canvas behavior
+    canvas.isDrawingMode = false;
+    canvas.selection = tool === 'select';
+    
+    // Remove any existing event listeners
+    canvas.off('mouse:down');
+    canvas.off('mouse:move');
+    canvas.off('mouse:up');
+    
+    // Add new event listeners based on tool
+    switch(tool) {
+        case 'rectangle':
+            setupRectangleTool();
+            break;
+        case 'arrow':
+            setupArrowTool();
+            break;
+        case 'text':
+            setupTextTool();
+            break;
+    }
 }
+
+// Rectangle tool
+function setupRectangleTool() {
+    canvas.on('mouse:down', (o) => {
+        isDrawing = true;
+        const pointer = canvas.getPointer(o.e);
+        startPoint = { x: pointer.x, y: pointer.y };
+        
+        const rect = new fabric.Rect({
+            left: startPoint.x,
+            top: startPoint.y,
+            width: 0,
+            height: 0,
+            fill: 'transparent',
+            stroke: '#000',
+            strokeWidth: 2
+        });
+        
+        canvas.add(rect);
+        canvas.setActiveObject(rect);
+    });
+    
+    canvas.on('mouse:move', (o) => {
+        if (!isDrawing) return;
+        const pointer = canvas.getPointer(o.e);
+        const rect = canvas.getActiveObject();
+        
+        if (rect) {
+            const width = pointer.x - startPoint.x;
+            const height = pointer.y - startPoint.y;
+            
+            rect.set({
+                width: Math.abs(width),
+                height: Math.abs(height),
+                left: width > 0 ? startPoint.x : pointer.x,
+                top: height > 0 ? startPoint.y : pointer.y
+            });
+            
+            canvas.renderAll();
+        }
+    });
+    
+    canvas.on('mouse:up', () => {
+        isDrawing = false;
+    });
+}
+
+// Arrow tool
+function setupArrowTool() {
+    canvas.on('mouse:down', (o) => {
+        isDrawing = true;
+        const pointer = canvas.getPointer(o.e);
+        startPoint = { x: pointer.x, y: pointer.y };
+        
+        const line = new fabric.Line([startPoint.x, startPoint.y, startPoint.x, startPoint.y], {
+            stroke: '#000',
+            strokeWidth: 2,
+            selectable: true
+        });
+        
+        canvas.add(line);
+        canvas.setActiveObject(line);
+    });
+    
+    canvas.on('mouse:move', (o) => {
+        if (!isDrawing) return;
+        const pointer = canvas.getPointer(o.e);
+        const line = canvas.getActiveObject();
+        
+        if (line) {
+            line.set({
+                x2: pointer.x,
+                y2: pointer.y
+            });
+            
+            // Add arrow head
+            const angle = Math.atan2(pointer.y - startPoint.y, pointer.x - startPoint.x);
+            const arrowLength = 20;
+            
+            const arrow = new fabric.Triangle({
+                left: pointer.x,
+                top: pointer.y,
+                angle: (angle * 180 / Math.PI) + 90,
+                width: 20,
+                height: 20,
+                fill: '#000',
+                selectable: false
+            });
+            
+            canvas.add(arrow);
+            canvas.renderAll();
+        }
+    });
+    
+    canvas.on('mouse:up', () => {
+        isDrawing = false;
+    });
+}
+
+// Text tool
+function setupTextTool() {
+    canvas.on('mouse:down', (o) => {
+        const pointer = canvas.getPointer(o.e);
+        const text = new fabric.IText('Double click to edit', {
+            left: pointer.x,
+            top: pointer.y,
+            fontSize: 20,
+            fill: '#000',
+            selectable: true
+        });
+        
+        canvas.add(text);
+        canvas.setActiveObject(text);
+        text.enterEditing();
+    });
+}
+
+// Delete tool
+tools.delete.addEventListener('click', () => {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.remove(activeObject);
+        canvas.renderAll();
+    }
+});
+
+// Layer management
+tools.bringForward.addEventListener('click', () => {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.bringForward(activeObject);
+        canvas.renderAll();
+    }
+});
+
+tools.sendBackward.addEventListener('click', () => {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.sendBackwards(activeObject);
+        canvas.renderAll();
+    }
+});
+
+// Export functionality
+tools.export.addEventListener('click', () => {
+    const json = JSON.stringify(canvas.toJSON());
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'diagram.json';
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
+// Import functionality
+tools.import.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const json = JSON.parse(event.target.result);
+            canvas.loadFromJSON(json, () => {
+                canvas.renderAll();
+            });
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+});
+
+// Initialize with select tool
+setActiveTool('select');
 
