@@ -17,6 +17,17 @@
             <div class="col-md-2 toolbar">
                 <h3>Tools</h3>
                 <div class="tool-group">
+                    <h5>Upload Diagram</h5>
+                    <input type="file" id="imageUpload" accept="image/*" class="form-control mb-2" />
+                    <button class="btn btn-primary w-100" id="uploadBtn">Upload</button>
+                    <div id="processingStatus" class="mt-2 text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-1">Processing diagram...</p>
+                    </div>
+                </div>
+                <div class="tool-group">
                     <button id="selectTool" class="tool-btn" title="Select">
                         <i class="fas fa-mouse-pointer"></i>
                     </button>
@@ -48,10 +59,6 @@
                     <button id="importBtn" class="tool-btn" title="Import">
                         <i class="fas fa-upload"></i>
                     </button>
-                    <label for="imageUpload" class="tool-btn" title="Upload Diagram">
-                        <i class="fas fa-file-image"></i>
-                    </label>
-                    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
                 </div>
             </div>
             
