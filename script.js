@@ -10,6 +10,7 @@ const canvas = new fabric.Canvas('canvas', {
 let currentTool = 'select';
 let isDrawing = false;
 let startPoint = null;
+let uploadedImage = null;
 
 // Initialize tools
 const tools = {
@@ -21,14 +22,65 @@ const tools = {
     bringForward: document.getElementById('bringForward'),
     sendBackward: document.getElementById('sendBackward'),
     export: document.getElementById('exportBtn'),
-    import: document.getElementById('importBtn')
+    import: document.getElementById('importBtn'),
+    upload: document.getElementById('uploadBtn')
 };
+
+// Image upload handling
+document.getElementById('imageUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                // Clear existing content
+                canvas.clear();
+                
+                // Create fabric image
+                const fabricImage = new fabric.Image(img, {
+                    left: 0,
+                    top: 0,
+                    selectable: true,
+                    hasControls: true,
+                    hasBorders: true,
+                    lockMovementX: false,
+                    lockMovementY: false,
+                    lockRotation: false,
+                    lockScalingX: false,
+                    lockScalingY: false
+                });
+                
+                // Scale image to fit canvas while maintaining aspect ratio
+                const scale = Math.min(
+                    canvas.width / img.width,
+                    canvas.height / img.height
+                );
+                
+                fabricImage.scale(scale);
+                
+                // Center the image
+                fabricImage.set({
+                    left: (canvas.width - img.width * scale) / 2,
+                    top: (canvas.height - img.height * scale) / 2
+                });
+                
+                canvas.add(fabricImage);
+                canvas.setActiveObject(fabricImage);
+                uploadedImage = fabricImage;
+                canvas.renderAll();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
 // Set up tool buttons
 Object.keys(tools).forEach(tool => {
     if (tools[tool]) {
         tools[tool].addEventListener('click', () => {
-            if (tool !== 'delete' && tool !== 'bringForward' && tool !== 'sendBackward' && tool !== 'export' && tool !== 'import') {
+            if (tool !== 'delete' && tool !== 'bringForward' && tool !== 'sendBackward' && tool !== 'export' && tool !== 'import' && tool !== 'upload') {
                 setActiveTool(tool);
             }
         });
